@@ -1,7 +1,3 @@
-Aqui está um exemplo de um arquivo `README.md` para o seu jogo:
-
----
-
 # Jogo de Adivinhação com Flask
 
 Este é um simples jogo de adivinhação desenvolvido utilizando o framework Flask. O jogador deve adivinhar uma senha criada aleatoriamente, e o sistema fornecerá feedback sobre o número de letras corretas e suas respectivas posições.
