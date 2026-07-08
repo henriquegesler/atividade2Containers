@@ -2,7 +2,7 @@
 
 Este projeto também pode ser executado utilizando Docker Compose, sem necessidade de instalação manual do Python, Node.js ou PostgreSQL.
 
-# Arquitetura
+### Arquitetura
 
 A solução foi organizada com os seguintes serviços:
 
@@ -13,7 +13,7 @@ PostgreSQL: banco de dados utilizado para armazenamento das informações do jog
 
 O armazenamento do banco de dados é realizado em um volume Docker dedicado, garantindo persistência mesmo após a recriação dos containers.
 
-# Execução
+### Execução
 
 Na raiz do projeto, execute:
 
@@ -34,7 +34,7 @@ Atualizar o PostgreSQL alterando a tag da imagem no docker-compose.yml.
 
 Essa abordagem evita alterações no código da aplicação e facilita futuras manutenções.
 
-# Decisões de Projeto
+### Decisões de Projeto
 
 As seguintes decisões foram adotadas durante a implementação da infraestrutura:
 
