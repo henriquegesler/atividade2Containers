@@ -1,9 +1,5 @@
 .venv
 .vscode
-Dockerfile-front-local
-Dockerfile-otel
-Dockerfile-no-otel
-docker-compose-local.yaml
 */__pycache__/*
 db/*
 *.sqlite3

@@ -1,3 +1,52 @@
+## Execução com Docker Compose
+
+Este projeto também pode ser executado utilizando Docker Compose, sem necessidade de instalação manual do Python, Node.js ou PostgreSQL.
+
+# Arquitetura
+
+A solução foi organizada com os seguintes serviços:
+
+NGINX: responsável por servir a aplicação React, atuar como proxy reverso e realizar o balanceamento de carga entre as instâncias do backend.
+Backend 1 (Flask): primeira instância da aplicação Python.
+Backend 2 (Flask): segunda instância da aplicação Python utilizada para balanceamento de carga.
+PostgreSQL: banco de dados utilizado para armazenamento das informações do jogo em volume persistente.
+
+O armazenamento do banco de dados é realizado em um volume Docker dedicado, garantindo persistência mesmo após a recriação dos containers.
+
+# Execução
+
+Na raiz do projeto, execute:
+
+docker compose up --build
+
+Após a inicialização dos serviços, a aplicação estará disponível em:
+
+http://localhost
+Atualização dos Componentes
+
+A estrutura foi organizada para permitir a atualização independente dos componentes apenas alterando a versão da imagem correspondente.
+
+Exemplos:
+
+Atualizar o Python modificando a imagem base do Dockerfile-back.
+Atualizar o Node.js ou o NGINX modificando a imagem base do Dockerfile-front.
+Atualizar o PostgreSQL alterando a tag da imagem no docker-compose.yml.
+
+Essa abordagem evita alterações no código da aplicação e facilita futuras manutenções.
+
+# Decisões de Projeto
+
+As seguintes decisões foram adotadas durante a implementação da infraestrutura:
+
+A aplicação original não foi modificada.
+O NGINX é responsável por servir os arquivos estáticos do React e realizar o proxy reverso para o backend.
+O balanceamento de carga é realizado utilizando o algoritmo Round Robin padrão do NGINX entre duas instâncias do backend.
+O PostgreSQL utiliza um volume persistente para armazenamento dos dados.
+A configuração da aplicação é realizada por variáveis de ambiente definidas no docker-compose.yml, preservando o código-fonte original da aplicação.
+O script start-backend.sh foi mantido inalterado. Durante a execução com Docker Compose, a inicialização do backend é realizada diretamente pelo container, utilizando as variáveis de ambiente fornecidas pelo Compose, evitando alterações na aplicação original.
+
+-------------------------------------------------------------------------------------------------------------------------------------
+
 # Jogo de Adivinhação com Flask
 
 Este é um simples jogo de adivinhação desenvolvido utilizando o framework Flask. O jogador deve adivinhar uma senha criada aleatoriamente, e o sistema fornecerá feedback sobre o número de letras corretas e suas respectivas posições.

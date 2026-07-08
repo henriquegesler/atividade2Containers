@@ -1,0 +1,58 @@
+services:
+  postgres:
+    image: postgres:16
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: secretpass
+      POSTGRES_DB: postgres
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+  backend1:
+    build:
+      context: .
+      dockerfile: Dockerfile-back
+    restart: unless-stopped
+    depends_on:
+      - postgres
+    environment:
+      FLASK_APP: run.py
+      FLASK_DB_TYPE: postgres
+      FLASK_DB_USER: postgres
+      FLASK_DB_NAME: postgres
+      FLASK_DB_PASSWORD: secretpass
+      FLASK_DB_HOST: postgres
+      FLASK_DB_PORT: 5432
+
+  backend2:
+    build:
+      context: .
+      dockerfile: Dockerfile-back
+    restart: unless-stopped
+    depends_on:
+      - postgres
+    environment:
+      FLASK_APP: run.py
+      FLASK_DB_TYPE: postgres
+      FLASK_DB_USER: postgres
+      FLASK_DB_NAME: postgres
+      FLASK_DB_PASSWORD: secretpass
+      FLASK_DB_HOST: postgres
+      FLASK_DB_PORT: 5432
+
+  nginx:
+    build:
+      context: .
+      dockerfile: Dockerfile-front
+      args:
+        REACT_APP_BACKEND_URL: ""
+    restart: unless-stopped
+    depends_on:
+      - backend1
+      - backend2
+    ports:
+      - "80:80"
+
+volumes:
+  postgres_data:
