@@ -49,7 +49,7 @@ Durante a implementação foram utilizados os seguintes recursos do Kubernetes:
 
 # Imagens Docker
 
-As imagens utilizadas pela aplicação estão publicadas no Docker Hub do aluno.
+As imagens utilizadas pela aplicação estão publicadas no Docker Hub.
 
 Backend:
 
@@ -99,23 +99,33 @@ Na raiz do projeto execute:
 kubectl apply -f k8s/
 ```
 
+> **Observação:** O Pod do PostgreSQL pode levar alguns segundos para concluir sua inicialização na primeira execução. Aguarde até que todos os Deployments estejam concluídos e os Pods estejam no estado **Running** antes de acessar a aplicação.
+
 ---
 
 # Verificação da implantação
 
-Verificar os Pods:
+Aguarde a conclusão dos Deployments:
+
+```bash
+kubectl rollout status deployment/postgres
+kubectl rollout status deployment/backend
+kubectl rollout status deployment/frontend
+```
+
+Verifique os Pods:
 
 ```bash
 kubectl get pods
 ```
 
-Verificar os Services:
+Verifique os Services:
 
 ```bash
 kubectl get svc
 ```
 
-Verificar o Horizontal Pod Autoscaler:
+Verifique o Horizontal Pod Autoscaler:
 
 ```bash
 kubectl get hpa
@@ -125,7 +135,7 @@ kubectl get hpa
 
 # Acesso à aplicação
 
-Após todos os Pods estarem no estado **Running**, a aplicação estará disponível em:
+Após todos os Deployments terem sido concluídos e os Pods estarem no estado **Running**, a aplicação estará disponível em:
 
 ```
 http://localhost:30080
@@ -152,7 +162,7 @@ Durante a implementação foram adotadas as seguintes decisões:
 - Toda a infraestrutura foi reimplementada utilizando Kubernetes.
 - O frontend é disponibilizado através de um Service do tipo NodePort.
 - O backend é executado utilizando múltiplas réplicas em um Deployment.
-- O banco PostgreSQL utiliza armazenamento persistente através de PersistentVolumeClaim.
+- O banco PostgreSQL utiliza armazenamento persistente através de um PersistentVolumeClaim.
 - A comunicação entre os componentes ocorre através de Services internos do Kubernetes.
 - O Horizontal Pod Autoscaler monitora a utilização de CPU do backend e ajusta automaticamente a quantidade de réplicas.
 - As imagens utilizadas pela aplicação são obtidas diretamente do Docker Hub, não sendo necessária sua reconstrução durante a implantação.
