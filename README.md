@@ -208,7 +208,9 @@ helm/
     └── templates/
 ```
 
-Os templates Helm foram construídos a partir dos manifests Kubernetes originais, parametrizando informações como:
+Os templates Helm foram construídos a partir dos manifests Kubernetes originais, mantendo a mesma arquitetura da aplicação e centralizando as principais configurações no arquivo `values.yaml`. Além da parametrização dos recursos, a implementação adiciona mecanismos nativos do Kubernetes para aumentar a robustez da implantação.
+
+Foram parametrizados os seguintes itens:
 
 - imagens Docker;
 - número de réplicas;
@@ -218,15 +220,26 @@ Os templates Helm foram construídos a partir dos manifests Kubernetes originais
 - configuração do Horizontal Pod Autoscaler;
 - porta de acesso da aplicação.
 
+Além disso, a implementação Helm incorpora melhorias específicas para o ambiente Kubernetes, incluindo:
+
+- configuração de **Liveness Probe** e **Readiness Probe** no backend utilizando o endpoint `/health`;
+- centralização das configurações da implantação no arquivo `values.yaml`, facilitando a reutilização do Chart em diferentes ambientes sem necessidade de alterar os templates.
+
 ### Implantação utilizando Helm
 
-Após criar o cluster k3d, execute:
+Criar um cluster k3d:
 
 ```bash
-helm install guess-game ./helm/guess-game
+k3d cluster create guess-game -p "30080:30080@loadbalancer"
 ```
 
-Verifique a implantação:
+Instalar o Chart:
+
+```bash
+helm install guess-game .
+```
+
+Verificar os recursos:
 
 ```bash
 kubectl get pods
