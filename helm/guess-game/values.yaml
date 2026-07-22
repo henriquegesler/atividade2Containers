@@ -1,0 +1,50 @@
+backend:
+  image: hgesler/guess-game-backend
+  tag: latest
+  replicas: 2
+
+frontend:
+  image: hgesler/guess-game-frontend
+  tag: latest
+  replicas: 1
+
+postgres:
+  image: postgres
+  tag: "16"
+  database: postgres
+  username: postgres
+  password: secretpass
+  storage: 1Gi
+
+service:
+  frontendNodePort: 30080
+
+resources:
+  backend:
+    requests:
+      cpu: "100m"
+      memory: "128Mi"
+    limits:
+      cpu: "500m"
+      memory: "256Mi"
+
+  frontend:
+    requests:
+      cpu: "50m"
+      memory: "64Mi"
+    limits:
+      cpu: "200m"
+      memory: "128Mi"
+
+  postgres:
+    requests:
+      cpu: "100m"
+      memory: "128Mi"
+    limits:
+      cpu: "500m"
+      memory: "256Mi"
+
+hpa:
+  minReplicas: 2
+  maxReplicas: 5
+  targetCPUUtilizationPercentage: 50

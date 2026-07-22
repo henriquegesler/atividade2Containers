@@ -1,0 +1,6 @@
+apiVersion: v2
+name: guess-game
+description: Helm Chart para a aplicação Guess Game
+type: application
+version: 0.1.0
+appVersion: "1.0"

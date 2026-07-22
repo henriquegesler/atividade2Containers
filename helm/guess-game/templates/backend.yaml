@@ -1,0 +1,80 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: backend
+spec:
+  replicas: {{ .Values.backend.replicas }}
+  selector:
+    matchLabels:
+      app: backend
+
+  template:
+    metadata:
+      labels:
+        app: backend
+
+    spec:
+      containers:
+        - name: backend
+          image: "{{ .Values.backend.image }}:{{ .Values.backend.tag }}"
+          imagePullPolicy: Always
+
+          ports:
+            - containerPort: 5000
+
+          livenessProbe:
+            httpGet:
+                path: /health
+                port: 5000
+            initialDelaySeconds: 20
+            periodSeconds: 10
+
+          readinessProbe:
+            httpGet:
+                path: /health
+                port: 5000
+            initialDelaySeconds: 10
+            periodSeconds: 5  
+          
+          env:
+            - name: FLASK_APP
+              value: run.py
+
+            - name: FLASK_DB_TYPE
+              value: postgres
+
+            - name: FLASK_DB_NAME
+              value: {{ .Values.postgres.database | quote }}
+
+            - name: FLASK_DB_USER
+              value: {{ .Values.postgres.username | quote }}
+
+            - name: FLASK_DB_PASSWORD
+              value: {{ .Values.postgres.password | quote }}
+
+            - name: FLASK_DB_HOST
+              value: postgres
+
+          resources:
+            requests:
+              cpu: {{ .Values.resources.backend.requests.cpu | quote }}
+              memory: {{ .Values.resources.backend.requests.memory | quote }}
+            limits:
+              cpu: {{ .Values.resources.backend.limits.cpu | quote }}
+              memory: {{ .Values.resources.backend.limits.memory | quote }}
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: backend
+
+spec:
+  selector:
+    app: backend
+
+  ports:
+    - port: 5000
+      targetPort: 5000
+
+  type: ClusterIP

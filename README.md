@@ -188,3 +188,56 @@ Dockerfile-back
 Dockerfile-front
 README.md
 ```
+---
+
+# Implementação Adicional - Helm Charts
+
+Como implementação adicional, foi desenvolvido um **Helm Chart** para a aplicação, permitindo que toda a infraestrutura Kubernetes seja implantada por meio de um único comando.
+
+O Helm foi utilizado como uma camada de abstração sobre os manifests Kubernetes já desenvolvidos, mantendo a mesma arquitetura e comportamento da aplicação.
+
+Essa implementação tem como objetivo facilitar a instalação, centralizar configurações em um único arquivo (`values.yaml`) e demonstrar a utilização de uma ferramenta amplamente empregada na implantação e gerenciamento de aplicações Kubernetes.
+
+A estrutura criada encontra-se no diretório:
+
+```
+helm/
+└── guess-game/
+    ├── Chart.yaml
+    ├── values.yaml
+    └── templates/
+```
+
+Os templates Helm foram construídos a partir dos manifests Kubernetes originais, parametrizando informações como:
+
+- imagens Docker;
+- número de réplicas;
+- recursos de CPU e memória;
+- configurações do PostgreSQL;
+- tamanho do PersistentVolumeClaim;
+- configuração do Horizontal Pod Autoscaler;
+- porta de acesso da aplicação.
+
+### Implantação utilizando Helm
+
+Após criar o cluster k3d, execute:
+
+```bash
+helm install guess-game ./helm/guess-game
+```
+
+Verifique a implantação:
+
+```bash
+kubectl get pods
+kubectl get svc
+kubectl get hpa
+```
+
+A aplicação estará disponível em:
+
+```
+http://localhost:30080
+```
+
+A utilização do Helm não substitui a implantação apresentada anteriormente por meio dos manifests Kubernetes, sendo disponibilizada como uma implementação adicional da infraestrutura.
