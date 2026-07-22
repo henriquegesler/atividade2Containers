@@ -1,203 +1,180 @@
-## Execução com Docker Compose
+# Atividade 2 - Kubernetes (k3d)
 
-Este projeto também pode ser executado utilizando Docker Compose, sem necessidade de instalação manual do Python, Node.js ou PostgreSQL.
+## Reimplementação da infraestrutura da aplicação Guess Game
 
-### Arquitetura
+Este projeto consiste na reimplementação da infraestrutura da aplicação **Guess Game** utilizando **Kubernetes (k3d)**, conforme proposto na Atividade 2 da disciplina de Containerização.
 
-A solução foi organizada com os seguintes serviços:
+A aplicação original não foi modificada, sendo alterada apenas sua infraestrutura de implantação.
 
-- NGINX: responsável por servir a aplicação React, atuar como proxy reverso e realizar o balanceamento de carga entre as instâncias do backend.
-- Backend 1 (Flask): primeira instância da aplicação Python.
-- Backend 2 (Flask): segunda instância da aplicação Python utilizada para balanceamento de carga.
-- PostgreSQL: banco de dados utilizado para armazenamento das informações do jogo em volume persistente.
+---
 
-O armazenamento do banco de dados é realizado em um volume Docker dedicado, garantindo persistência mesmo após a recriação dos containers.
+# Arquitetura
 
-### Execução
+A solução é composta pelos seguintes componentes Kubernetes:
 
-Na raiz do projeto, execute:
+- **Frontend**
+  - Deployment
+  - Service (NodePort)
 
-docker compose up --build
+- **Backend**
+  - Deployment
+  - Service (ClusterIP)
+  - Horizontal Pod Autoscaler (HPA)
 
-Após a inicialização dos serviços, a aplicação estará disponível em:
+- **Banco de Dados**
+  - PostgreSQL
+  - Deployment
+  - Service (ClusterIP)
+  - PersistentVolumeClaim (PVC)
 
-http://localhost
+Todos os manifests encontram-se no diretório:
 
-### Atualização dos Componentes
+```
+k8s/
+```
 
-A estrutura foi organizada para permitir a atualização independente dos componentes apenas alterando a versão da imagem correspondente.
+---
 
-Exemplos:
+# Componentes Kubernetes utilizados
 
-- Atualizar o Python modificando a imagem base do Dockerfile-back.
-- Atualizar o Node.js ou o NGINX modificando a imagem base do Dockerfile-front.
-- Atualizar o PostgreSQL alterando a tag da imagem no docker-compose.yml.
+Durante a implementação foram utilizados os seguintes recursos do Kubernetes:
 
-Essa abordagem evita alterações no código da aplicação e facilita futuras manutenções.
+- Deployment
+- Service (ClusterIP)
+- Service (NodePort)
+- PersistentVolumeClaim (PVC)
+- Horizontal Pod Autoscaler (HPA)
 
-### Decisões de Projeto
+---
 
-As seguintes decisões foram adotadas durante a implementação da infraestrutura:
+# Imagens Docker
 
-- A aplicação original não foi modificada.
-- O NGINX é responsável por servir os arquivos estáticos do React e realizar o proxy reverso para o backend.
-- O balanceamento de carga é realizado utilizando o algoritmo Round Robin padrão do NGINX entre duas instâncias do backend.
-- O PostgreSQL utiliza um volume persistente para armazenamento dos dados.
-- A configuração da aplicação é realizada por variáveis de ambiente definidas no docker-compose.yml, preservando o código-fonte original da aplicação.
-- O script start-backend.sh foi mantido inalterado. Durante a execução com Docker Compose, a inicialização do backend é realizada diretamente pelo container, utilizando as variáveis de ambiente fornecidas pelo Compose, evitando alterações na aplicação original.
+As imagens utilizadas pela aplicação estão publicadas no Docker Hub do aluno.
 
--------------------------------------------------------------------------------------------------------------------------------------
+Backend:
 
-# Jogo de Adivinhação com Flask
+```
+hgesler/guess-game-backend:latest
+```
 
-Este é um simples jogo de adivinhação desenvolvido utilizando o framework Flask. O jogador deve adivinhar uma senha criada aleatoriamente, e o sistema fornecerá feedback sobre o número de letras corretas e suas respectivas posições.
+Frontend:
 
-## Funcionalidades
+```
+hgesler/guess-game-frontend:latest
+```
 
-- Criação de um novo jogo com uma senha fornecida pelo usuário.
-- Adivinhe a senha e receba feedback se as letras estão corretas e/ou em posições corretas.
-- As senhas são armazenadas  utilizando base64.
-- As adivinhações incorretas retornam uma mensagem com dicas.
-  
-## Requisitos
+Dessa forma, não é necessário reconstruir as imagens para executar a aplicação.
 
-- Python 3.8+ - 3.12
-- Flask
-- Um banco de dados local (ou um mecanismo de armazenamento configurado em `current_app.db`)
-- node 18.17.0
+---
 
-## Instalação
+# Pré-requisitos
 
-1. Clone o repositório:
+- Docker Desktop
+- kubectl
+- k3d
 
-   ```bash
-   git clone https://github.com/fams/guess_game.git
-   cd guess-game
-   ```
+---
 
-2. Crie um ambiente virtual e ative-o:
+# Criação do cluster
 
-   ```bash
-   python3 -m venv venv
-   source venv/bin/activate  # Linux/Mac
-   venv\Scripts\activate  # Windows
-   ```
+Criar o cluster k3d:
 
-3. Instale as dependências:
+```bash
+k3d cluster create guess-game -p "30080:30080@loadbalancer"
+```
 
-   ```bash
-   pip install -r requirements.txt
-   ```
+Verificar se o cluster foi criado corretamente:
 
-4. Configure o banco de dados com as variáveis de ambiente no arquivo start-backend.sh
-    1. Para sqlite
+```bash
+kubectl get nodes
+```
 
-        ```bash
-            export FLASK_APP="run.py"
-            export FLASK_DB_TYPE="sqlite"            # Use SQLITE
-            export FLASK_DB_PATH="caminho/db.sqlite" # caminho do banco
-        ```
+---
 
-    2. Para Postgres
+# Implantação da aplicação
 
-        ```bash
-            export FLASK_APP="run.py"
-            export FLASK_DB_TYPE="postgres"       # Use postgres
-            export FLASK_DB_USER="postgres"       # Usuário do banco
-            export FLASK_DB_NAME="postgres"       # Nome do Banco
-            export FLASK_DB_PASSWORD="secretpass" # Senha do banco
-            export FLASK_DB_HOST="localhost"      # Hostname
-            export FLASK_DB_PORT="5432"           # Porta
-        ```
+Na raiz do projeto execute:
 
-    3. Para DynamoDB
+```bash
+kubectl apply -f k8s/
+```
 
-        ```bash
-        export FLASK_APP="run.py"
-        export FLASK_DB_TYPE="dynamodb"       # Use postgres
-        export AWS_DEFAULT_REGION="us-east-1" # AWS region
-        export AWS_ACCESS_KEY_ID="FAKEACCESSKEY123456" 
-        export AWS_SECRET_ACCESS_KEY="FakeSecretAccessKey987654321"
-        export AWS_SESSION_TOKEN="FakeSessionTokenABCDEFGHIJKLMNOPQRSTUVXYZ1234567890"
-        ```
+---
 
-5. Execute o backend
+# Verificação da implantação
 
-   ```bash
-   ./start-backend.sh &
-   ```
+Verificar os Pods:
 
-6. Cuidado! verifique se o seu linux está lendo o arquivo .sh com fim de linha do windows CRLF. Para verificar utilize o vim -b start-backend.sh
+```bash
+kubectl get pods
+```
 
-## Frontend
-No diretorio de frontend
+Verificar os Services:
 
-1. Instale o node com o nvm. Se não tiver o nvm instalado, siga o [tutorial](https://github.com/nvm-sh/nvm?tab=readme-ov-file#installing-and-updating)
+```bash
+kubectl get svc
+```
 
-    ```bash
-    nvm install 18.17.0
-    nvm use 18.17.0
-    # Habilite o yarn
-    corepack enable
-    ```
+Verificar o Horizontal Pod Autoscaler:
 
-2. Instale as dependências do node com o npm:
+```bash
+kubectl get hpa
+```
 
-    ```bash
-    npm install
-    ```
+---
 
-3. Exporte a url onde está executando o backend e execute o backend.
+# Acesso à aplicação
 
-   ```bash
-    export REACT_APP_BACKEND_URL=http://localhost:5000
-    yarn start
-   ```
+Após todos os Pods estarem no estado **Running**, a aplicação estará disponível em:
 
-## Como Jogar
+```
+http://localhost:30080
+```
 
-### 1. Criar um novo jogo
+---
 
-Acesse a url do frontend http://localhost:3000
+# Estrutura da solução
 
-Digite uma frase secreta
+| Componente | Recursos Kubernetes |
+|------------|---------------------|
+| Frontend | Deployment + Service (NodePort) |
+| Backend | Deployment + Service (ClusterIP) |
+| PostgreSQL | Deployment + Service (ClusterIP) + PersistentVolumeClaim |
+| Escalabilidade | Horizontal Pod Autoscaler (HPA) |
 
-Envie
+---
 
-Salve o game-id
+# Decisões de implementação
 
+Durante a implementação foram adotadas as seguintes decisões:
 
-### 2. Adivinhar a senha
+- A aplicação original foi mantida sem alterações.
+- Toda a infraestrutura foi reimplementada utilizando Kubernetes.
+- O frontend é disponibilizado através de um Service do tipo NodePort.
+- O backend é executado utilizando múltiplas réplicas em um Deployment.
+- O banco PostgreSQL utiliza armazenamento persistente através de PersistentVolumeClaim.
+- A comunicação entre os componentes ocorre através de Services internos do Kubernetes.
+- O Horizontal Pod Autoscaler monitora a utilização de CPU do backend e ajusta automaticamente a quantidade de réplicas.
+- As imagens utilizadas pela aplicação são obtidas diretamente do Docker Hub, não sendo necessária sua reconstrução durante a implantação.
+- A configuração do NGINX foi adaptada para o ambiente Kubernetes, direcionando as requisições para o Service do backend, responsável pelo balanceamento entre as réplicas da aplicação.
 
-Acesse a url do frontend http://localhost:3000
+---
 
-Vá para o endponint breaker
+# Organização do projeto
 
-entre com o game_id que foi gerado pelo Creator
+```
+k8s/
+├── backend.yaml
+├── frontend.yaml
+├── hpa.yaml
+└── postgres.yaml
 
-Tente adivinhar
+frontend/
+guess/
+repository/
+tests/
 
-## Estrutura do Código
-
-### Rotas:
-
-- **`/create`**: Cria um novo jogo. Armazena a senha codificada em base64 e retorna um `game_id`.
-- **`/guess/<game_id>`**: Permite ao usuário adivinhar a senha. Compara a adivinhação com a senha armazenada e retorna o resultado.
-
-### Classes Importantes:
-
-- **`Guess`**: Classe responsável por gerenciar a lógica de comparação entre a senha e a tentativa do jogador.
-- **`WrongAttempt`**: Exceção personalizada que é levantada quando a tentativa está incorreta.
-
-
-
-## Melhorias Futuras
-
-- Implementar autenticação de usuário para salvar e carregar jogos.
-- Adicionar limite de tentativas.
-- Melhorar a interface de feedback para as tentativas de adivinhação.
-
-## Licença
-
-Este projeto está licenciado sob a [MIT License](LICENSE).
-
+Dockerfile-back
+Dockerfile-front
+README.md
+```
